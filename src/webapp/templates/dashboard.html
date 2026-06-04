@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}仪表盘 - AI 资讯推送{% endblock %}
+{% block content %}
+<h1>仪表盘</h1>
+
+<section class="cards">
+    <div class="card">
+        <div class="card-label">RSS 源</div>
+        <div class="card-value">{{ feeds | length }}</div>
+        <a class="card-link" href="{{ url_for('feeds_list') }}">管理 →</a>
+    </div>
+    <div class="card">
+        <div class="card-label">Webhook</div>
+        <div class="card-value {% if not webhook_set %}warn{% endif %}">
+            {% if webhook_set %}已配置{% else %}未配置{% endif %}
+        </div>
+        <a class="card-link" href="{{ url_for('settings') }}">设置 →</a>
+    </div>
+    <div class="card">
+        <div class="card-label">API Key</div>
+        <div class="card-value {% if not api_key_set %}warn{% endif %}">
+            {% if api_key_set %}已配置{% else %}未配置{% endif %}
+        </div>
+        <a class="card-link" href="{{ url_for('settings') }}">设置 →</a>
+    </div>
+    <div class="card">
+        <div class="card-label">调度时间</div>
+        <div class="card-value">{{ schedule.morning }} / {{ schedule.evening }}</div>
+        <a class="card-link" href="{{ url_for('settings') }}">设置 →</a>
+    </div>
+</section>
+
+<section class="panel">
+    <h2>下次运行</h2>
+    <table class="kv">
+        <tr><th>早间</th><td>{{ schedule.morning }} · {{ next_runs.morning.strftime('%Y-%m-%d %H:%M') if next_runs.morning else '未计划' }}</td></tr>
+        <tr><th>晚间</th><td>{{ schedule.evening }} · {{ next_runs.evening.strftime('%Y-%m-%d %H:%M') if next_runs.evening else '未计划' }}</td></tr>
+    </table>
+</section>
+
+<section class="panel">
+    <h2>立即推送</h2>
+    <form method="post" action="{{ url_for('run_trigger') }}" id="trigger-form">
+        <button type="submit" class="btn primary">立即推送一次</button>
+        <span class="hint">会向飞书群发送当前所有新文章</span>
+    </form>
+    <div id="trigger-result" class="trigger-result"></div>
+</section>
+
+<section class="panel">
+    <h2>最近 5 次运行</h2>
+    {% if recent %}
+    <table>
+        <thead><tr><th>时间</th><th>状态</th><th>新文章</th><th>推送</th><th>触发</th><th></th></tr></thead>
+        <tbody>
+        {% for r in recent %}
+        <tr>
+            <td>{{ r.started_at or '-' }}</td>
+            <td><span class="badge {{ r.status }}">{{ r.status }}</span></td>
+            <td>{{ r.new_article_count }}</td>
+            <td>{{ r.push_status or '-' }}</td>
+            <td>{{ r.trigger }}</td>
+            <td><a href="{{ url_for('run_detail', run_id=r.run_id) }}">详情</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty">暂无运行记录</p>
+    {% endif %}
+</section>
+
+<script>
+document.getElementById('trigger-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    btn.disabled = true;
+    const result = document.getElementById('trigger-result');
+    result.textContent = '已触发, 正在跳转...';
+    try {
+        const resp = await fetch('{{ url_for("run_trigger") }}', {method: 'POST'});
+        if (resp.status === 409) {
+            const data = await resp.json();
+            result.textContent = '提示: ' + data.error;
+            btn.disabled = false;
+            return;
+        }
+        const data = await resp.json();
+        window.location.href = '/run/' + data.run_id;
+    } catch (err) {
+        result.textContent = '请求失败: ' + err;
+        btn.disabled = false;
+    }
+});
+</script>
+{% endblock %}

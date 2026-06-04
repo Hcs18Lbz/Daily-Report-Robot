@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}RSS 源管理{% endblock %}
+{% block content %}
+<h1>RSS 源管理</h1>
+
+<section class="panel">
+    <div class="panel-header">
+        <h2>当前列表 ({{ feeds | length }})</h2>
+        <a class="btn" href="{{ url_for('feeds_new') }}">+ 新增</a>
+    </div>
+    {% if feeds %}
+    <table>
+        <thead><tr><th>#</th><th>名称</th><th>URL</th><th>操作</th></tr></thead>
+        <tbody>
+        {% for f in feeds %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ f.name }}</td>
+            <td class="url"><a href="{{ f.url }}" target="_blank" rel="noopener">{{ f.url }}</a></td>
+            <td>
+                <a class="btn small" href="{{ url_for('feeds_edit', idx=loop.index0) }}">编辑</a>
+                <form method="post" action="{{ url_for('feeds_delete', idx=loop.index0) }}" style="display:inline" onsubmit="return confirm('确认删除 {{ f.name }}?')">
+                    <button type="submit" class="btn small danger">删除</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty">暂无 RSS 源, 点击右上角新增</p>
+    {% endif %}
+</section>
+
+{% if form is not none %}
+<section class="panel">
+    <h2>{% if edit_idx == -1 %}新增 RSS 源{% else %}编辑第 {{ edit_idx + 1 }} 项{% endif %}</h2>
+    <form method="post" action="{{ url_for('feeds_save') }}">
+        <input type="hidden" name="edit_idx" value="{{ edit_idx }}">
+        <div class="form-row">
+            <label>名称</label>
+            <input type="text" name="name" value="{{ form.name }}" required>
+        </div>
+        <div class="form-row">
+            <label>URL</label>
+            <input type="url" name="url" value="{{ form.url }}" required placeholder="https://...">
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn primary">保存</button>
+            <a class="btn" href="{{ url_for('feeds_list') }}">取消</a>
+        </div>
+    </form>
+</section>
+{% endif %}
+{% endblock %}

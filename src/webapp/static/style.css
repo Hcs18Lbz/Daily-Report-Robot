@@ -1,0 +1,184 @@
+/* AI 资讯推送 - 管理界面样式 (浅色, 单文件, 不引外部库) */
+
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: #f5f6f8;
+    color: #1f2328;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: "Cascadia Code", "Consolas", monospace; font-size: 13px; }
+
+/* 顶部 */
+.topbar {
+    background: #1f2328;
+    color: #fff;
+    border-bottom: 1px solid #444;
+}
+.topbar-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+.brand { font-weight: 600; font-size: 16px; }
+.topbar nav { display: flex; gap: 24px; }
+.topbar nav a { color: #c9d1d9; padding: 4px 0; }
+.topbar nav a:hover { color: #fff; text-decoration: none; }
+.topbar nav a.active { color: #fff; border-bottom: 2px solid #58a6ff; }
+
+/* 主内容 */
+.container {
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 0 24px;
+}
+
+h1 { font-size: 22px; margin: 0 0 20px; }
+h2 { font-size: 16px; margin: 0 0 16px; color: #1f2328; }
+
+.panel {
+    background: #fff;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+}
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.panel-header h2 { margin: 0; }
+
+/* 卡片网格 */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.card {
+    background: #fff;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    padding: 16px 20px;
+}
+.card-label { color: #6e7781; font-size: 12px; margin-bottom: 6px; }
+.card-value { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+.card-value.warn { color: #cf222e; }
+.card-link { font-size: 12px; }
+
+/* 表格 */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #eaeef2; }
+th { background: #f6f8fa; font-weight: 600; color: #57606a; font-size: 12px; }
+tr:hover td { background: #f6f8fa; }
+table.kv th { width: 140px; background: transparent; }
+.url { font-family: monospace; font-size: 12px; max-width: 500px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 状态徽章 */
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+.badge.success, .badge.completed { background: #dafbe1; color: #1a7f37; }
+.badge.failed, .badge.error { background: #ffebe9; color: #cf222e; }
+.badge.queued, .badge.running { background: #ddf4ff; color: #0969da; }
+.badge.skipped { background: #fff8c5; color: #9a6700; }
+
+/* 按钮 */
+.btn {
+    display: inline-block;
+    padding: 6px 14px;
+    background: #f6f8fa;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    color: #1f2328;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+}
+.btn:hover { background: #eaeef2; text-decoration: none; }
+.btn.primary { background: #1f883d; color: #fff; border-color: #1f883d; }
+.btn.primary:hover { background: #1a7f37; }
+.btn.danger { background: #cf222e; color: #fff; border-color: #cf222e; }
+.btn.danger:hover { background: #a40e26; }
+.btn.small { padding: 3px 10px; font-size: 12px; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* 表单 */
+.form-row { margin-bottom: 16px; }
+.form-row label { display: block; font-weight: 500; margin-bottom: 4px; color: #57606a; }
+.form-row input[type=text], .form-row input[type=url] {
+    width: 100%;
+    max-width: 480px;
+    padding: 6px 10px;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+}
+.form-row input:focus { outline: none; border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,0.15); }
+.form-row small { display: block; color: #6e7781; margin-top: 4px; }
+.form-row.inline { display: flex; gap: 12px; align-items: center; }
+.form-row.inline input { width: 100px; }
+.form-actions { margin-top: 16px; }
+
+/* 提示 */
+.alert {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+.alert.error { background: #ffebe9; color: #cf222e; border: 1px solid #ff8182; }
+.hint { color: #6e7781; font-size: 12px; margin-left: 12px; }
+.empty { color: #6e7781; text-align: center; padding: 32px 0; }
+.trigger-result { margin-top: 12px; color: #57606a; font-size: 13px; }
+.final-hint { color: #6e7781; font-size: 12px; margin-top: 12px; padding: 8px 12px; background: #f6f8fa; border-radius: 4px; }
+
+/* 摘要 / 错误 */
+.summary {
+    background: #f6f8fa;
+    border: 1px solid #eaeef2;
+    border-radius: 6px;
+    padding: 12px 16px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: inherit;
+    font-size: 13px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+.error-trace {
+    background: #ffebe9;
+    border: 1px solid #ff8182;
+    border-radius: 6px;
+    padding: 12px 16px;
+    white-space: pre-wrap;
+    font-family: "Cascadia Code", "Consolas", monospace;
+    font-size: 12px;
+    color: #82071e;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* 底部 */
+.footer {
+    text-align: center;
+    color: #6e7781;
+    font-size: 12px;
+    padding: 24px 0 32px;
+}

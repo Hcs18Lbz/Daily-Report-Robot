@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI 资讯推送管理{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <span class="brand">AI 资讯推送</span>
+            <nav>
+                <a href="{{ url_for('dashboard') }}" {% if request.endpoint == 'dashboard' %}class="active"{% endif %}>仪表盘</a>
+                <a href="{{ url_for('feeds_list') }}" {% if request.endpoint in ('feeds_list', 'feeds_new', 'feeds_edit', 'feeds_save', 'feeds_delete') %}class="active"{% endif %}>RSS 源</a>
+                <a href="{{ url_for('settings') }}" {% if request.endpoint == 'settings' %}class="active"{% endif %}>设置</a>
+                <a href="{{ url_for('history_list') }}" {% if request.endpoint == 'history_list' %}class="active"{% endif %}>历史</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% if error %}
+        <div class="alert error">{{ error }}</div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <span>{{ now.strftime('%Y-%m-%d %H:%M:%S') if now else '' }}</span>
+    </footer>
+</body>
+</html>

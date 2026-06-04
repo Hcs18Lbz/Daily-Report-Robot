@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}设置{% endblock %}
+{% block content %}
+<h1>设置</h1>
+
+<section class="panel">
+    <h2>飞书 Webhook</h2>
+    <form method="post" action="{{ url_for('settings') }}">
+        <div class="form-row">
+            <label>Webhook URL</label>
+            <input type="text" name="webhook_url" value="{{ webhook }}" placeholder="https://open.feishu.cn/open-apis/bot/v2/hook/...">
+            <small>留空或填占位符 (含 YOUR_WEBHOOK) 视为未配置, 推送会被跳过</small>
+        </div>
+        <div class="form-row">
+            <label>NVIDIA API Key</label>
+            <input type="text" name="nvidia_api_key" value="" placeholder="{% if api_key_set %}已设置, 留空表示不改{% else %}未设置, 请填写{% endif %}">
+            <small>当前状态: {% if api_key_set %}已设置{% else %}未设置{% endif %}</small>
+        </div>
+        <h2>每日推送时间 (HH:MM)</h2>
+        <div class="form-row inline">
+            <label>早间</label>
+            <input type="text" name="morning" value="{{ schedule.morning }}" pattern="^([01]\d|2[0-3]):[0-5]\d$" required>
+            <label>晚间</label>
+            <input type="text" name="evening" value="{{ schedule.evening }}" pattern="^([01]\d|2[0-3]):[0-5]\d$" required>
+        </div>
+        <small>修改时间会同步更新 Windows 计划任务, 需要管理员或任务已存在</small>
+        <div class="form-actions">
+            <button type="submit" class="btn primary">保存</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}运行 {{ run_id }}{% endblock %}
+{% block content %}
+<h1>运行详情</h1>
+<a href="{{ url_for('dashboard') }}">← 返回仪表盘</a>
+
+<section class="panel">
+    <table class="kv">
+        <tr><th>Run ID</th><td><code>{{ run_id }}</code></td></tr>
+        <tr><th>开始时间</th><td id="started-at">{{ state.started_at or '-' }}</td></tr>
+        <tr><th>结束时间</th><td id="finished-at">{{ state.finished_at or '-' }}</td></tr>
+        <tr><th>状态</th><td id="status"><span class="badge {{ state.status }}">{{ state.status }}</span></td></tr>
+        <tr><th>新文章数</th><td id="new-count">{{ state.new_article_count }}</td></tr>
+        <tr><th>推送状态</th><td id="push-status">{{ state.push_status or '-' }}</td></tr>
+        <tr><th>触发方式</th><td>{{ state.trigger }}</td></tr>
+    </table>
+</section>
+
+<section class="panel">
+    <h2>AI 摘要</h2>
+    <pre id="summary" class="summary">{{ state.summary or '(等待摘要生成...)' }}</pre>
+</section>
+
+{% if state.error %}
+<section class="panel">
+    <h2>错误详情</h2>
+    <pre id="error" class="error-trace">{{ state.error }}</pre>
+</section>
+{% endif %}
+
+<div id="final-hint" class="final-hint" style="display:none">运行已结束, 此页不再自动刷新。</div>
+
+<script>
+const runId = {{ run_id | tojson }};
+const finalStates = new Set(['success', 'failed']);
+let isFinal = {{ 'true' if state.status in ('success', 'failed') else 'false' }};
+
+function fmtTime(s) {
+    return s || '-';
+}
+
+function update(state) {
+    document.getElementById('started-at').textContent = fmtTime(state.started_at);
+    document.getElementById('finished-at').textContent = fmtTime(state.finished_at);
+    document.getElementById('new-count').textContent = state.new_article_count;
+    document.getElementById('push-status').textContent = state.push_status || '-';
+    const statusEl = document.getElementById('status');
+    statusEl.innerHTML = '<span class="badge ' + state.status + '">' + state.status + '</span>';
+    if (state.summary) document.getElementById('summary').textContent = state.summary;
+    if (state.error && !document.getElementById('error')) {
+        const panel = document.createElement('section');
+        panel.className = 'panel';
+        panel.innerHTML = '<h2>错误详情</h2><pre class="error-trace">' + state.error + '</pre>';
+        document.querySelector('main').appendChild(panel);
+    }
+    if (finalStates.has(state.status)) {
+        isFinal = true;
+        document.getElementById('final-hint').style.display = 'block';
+    }
+}
+
+async function poll() {
+    if (isFinal) return;
+    try {
+        const resp = await fetch('/run/' + runId + '/status');
+        if (resp.status === 404) {
+            isFinal = true;
+            return;
+        }
+        const state = await resp.json();
+        update(state);
+    } catch (e) {
+        console.error('poll error', e);
+    }
+    if (!isFinal) setTimeout(poll, 2000);
+}
+
+if (!isFinal) setTimeout(poll, 2000);
+</script>
+{% endblock %}

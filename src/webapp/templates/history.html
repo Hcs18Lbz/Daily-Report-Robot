@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}运行历史{% endblock %}
+{% block content %}
+<h1>运行历史</h1>
+
+<section class="panel">
+    {% if runs %}
+    <table>
+        <thead><tr><th>开始时间</th><th>结束时间</th><th>状态</th><th>新文章</th><th>推送</th><th>触发</th><th></th></tr></thead>
+        <tbody>
+        {% for r in runs %}
+        <tr>
+            <td>{{ r.started_at or '-' }}</td>
+            <td>{{ r.finished_at or '-' }}</td>
+            <td><span class="badge {{ r.status }}">{{ r.status }}</span></td>
+            <td>{{ r.new_article_count }}</td>
+            <td>{{ r.push_status or '-' }}</td>
+            <td>{{ r.trigger }}</td>
+            <td><a href="{{ url_for('run_detail', run_id=r.run_id) }}">详情</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <p class="hint">最多保留最近 50 条</p>
+    {% else %}
+    <p class="empty">暂无历史记录, 点击仪表盘的"立即推送"或等待计划任务</p>
+    {% endif %}
+</section>
+{% endblock %}

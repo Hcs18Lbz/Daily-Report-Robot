@@ -49,7 +49,7 @@ class FeishuSender(Sender):
         alert = {
             "msg_type": "text",
             "content": {
-                "text": f"⚠️ AI 新闻推送告警\n时间: {now}\n错误: {error_msg}\n请检查 run.bat 日志。",
+                "text": f"⚠️ AI 新闻推送告警\n时间: {now}\n错误: {error_msg}\n请检查 scripts/run.bat 日志。",
             },
         }
         try:

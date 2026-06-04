@@ -27,7 +27,7 @@ _DOTENV_PATH = _CONFIG_PATH.parent.parent / ".env"
 _TASKS = ("AI-News-Morning", "AI-News-Evening")
 _SCHEDULE_KEYS = ("MORNING_SCHEDULE", "EVENING_SCHEDULE")
 _TIME_RE = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
-_RUN_BAT = _CONFIG_PATH.parent.parent / "run.bat"
+_RUN_BAT = _CONFIG_PATH.parent.parent / "scripts" / "run.bat"
 _PROJECT_ROOT = _CONFIG_PATH.parent.parent
 
 
@@ -120,7 +120,21 @@ def write_rss_feeds(new_feeds: list[dict[str, str]]) -> None:
     """校验 → 备份 → 写 config.py:RSS_FEEDS → ast.parse 校验, 失败回滚。"""
     feeds = [{"name": f.get("name", "").strip(), "url": f.get("url", "").strip()} for f in new_feeds]
     _validate_rss_feeds(feeds)
-    _write_config_value("RSS_FEEDS", repr(feeds))
+    _write_config_value("RSS_FEEDS", _format_feeds_literal(feeds))
+
+
+def _format_feeds_literal(feeds: list[dict[str, str]]) -> str:
+    """格式化 RSS 源为多行 Python 字面量, 与 config.py 既有风格一致 (4 空格缩进, 双引号)。"""
+    if not feeds:
+        return "[]"
+    lines = ["["]
+    for f in feeds:
+        lines.append(
+            f'    {{"name": {json.dumps(f["name"], ensure_ascii=False)}, '
+            f'"url": {json.dumps(f["url"], ensure_ascii=False)}}},'
+        )
+    lines.append("]")
+    return "\n".join(lines)
 
 
 # ─── .env ──────────────────────────────────────────────────────────────────────
@@ -183,13 +197,18 @@ def _ps_register_tasks(morning: str, evening: str) -> None:
         raise ScheduleError(f"PowerShell 失败: {result.stderr.strip() or result.stdout.strip()}")
 
 
+def _format_string_literal(s: str) -> str:
+    """Format a string as a Python double-quoted literal, 与 config.py 既有风格一致。"""
+    return json.dumps(s, ensure_ascii=False)
+
+
 def write_schedule(morning: str, evening: str) -> None:
     """校验 → 同步到 Task Scheduler → 写 config.py。MORNING/EVENING_SCHEDULE 同步更新。"""
     _validate_time(morning)
     _validate_time(evening)
     _ps_register_tasks(morning, evening)
-    _write_config_value("MORNING_SCHEDULE", repr(morning))
-    _write_config_value("EVENING_SCHEDULE", repr(evening))
+    _write_config_value("MORNING_SCHEDULE", _format_string_literal(morning))
+    _write_config_value("EVENING_SCHEDULE", _format_string_literal(evening))
 
 
 def get_next_run_times() -> dict[str, datetime | None]:
@@ -225,12 +244,37 @@ def get_next_run_times() -> dict[str, datetime | None]:
         if not raw:
             out[label] = None
             continue
-        try:
-            out[label] = datetime.fromisoformat(str(raw).replace("Z", "+00:00")).replace(tzinfo=None)
-        except (ValueError, TypeError) as e:
-            logger.warning("解析 NextRunTime 失败 (%s): %s, raw=%r", label, e, raw)
-            out[label] = None
+        parsed = _parse_powershell_datetime(str(raw))
+        if parsed is None:
+            logger.warning("解析 NextRunTime 失败 (%s), raw=%r", label, raw)
+        out[label] = parsed
     return out
+
+
+_MS_DATE_RE = re.compile(r"^/Date\((-?\d+)([+-]\d+)?\)/?$")
+
+
+def _parse_powershell_datetime(raw: str) -> datetime | None:
+    """解析 PowerShell ConvertTo-Json 输出的时间字符串。常见两种格式:
+    - ISO: '2026-06-05T09:00:00' 或带时区
+    - Microsoft JSON Date: '/Date(1780621200000)/' (ms since epoch UTC)
+    """
+    if not raw:
+        return None
+    s = raw.strip()
+    m = _MS_DATE_RE.match(s)
+    if m:
+        try:
+            return datetime.fromtimestamp(int(m.group(1)) / 1000)
+        except (ValueError, OSError) as e:
+            logger.debug("MS Date 解析失败: %s", e)
+            return None
+    try:
+        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        return dt.replace(tzinfo=None)
+    except ValueError as e:
+        logger.debug("ISO 解析失败: %s", e)
+        return None
 
 
 def ensure_tasks() -> None:
