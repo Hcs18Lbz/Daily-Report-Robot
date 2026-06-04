@@ -1,0 +1,4 @@
+feedparser
+requests
+python-dotenv
+flask
